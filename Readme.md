@@ -7,6 +7,7 @@
 git clone https://github.com/skoc/wsi-heatmap.git
 cd wsi-heatmap
 conda env create -f environment.yml
+conda activate env_wsi
 ``` 
 
 ### Dataset
@@ -126,7 +127,7 @@ optional arguments:
   --tile_size TILE_SIZE
                         Tile size
   --scale_factor SCALE_FACTOR
-                        Tile size
+                        Scale factor
   --scale_wsi SCALE_WSI
                         Scale WSI with given scale factor
   --path_write PATH_WRITE
