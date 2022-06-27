@@ -1,7 +1,7 @@
 # WSI Clustering Heatmap with ResNet Features 
 
 
-![screenshot](https://user-images.githubusercontent.com/9681868/40330248-a39603a2-5d4c-11e8-9d16-cc13fd9e21d4.png)
+![screenshot](https://github.com/skoc/wsi-heatmap/tree/master/img/flow.png)
 
 
 ## Setup
