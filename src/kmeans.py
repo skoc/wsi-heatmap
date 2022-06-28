@@ -5,11 +5,16 @@ from sklearn.preprocessing import StandardScaler
 import re
 import sys
 import argparse
-
+from PIL import Image
+import random
 
 def eprint(args):
     sys.stderr.write(str(args) + "\n")
 
+def mkdir_if_not_exist(inputdir):
+    if not os.path.exists(inputdir):
+        os.makedirs(inputdir)
+    return inputdir
 
 if __name__ == '__main__':
     # Parse command line arguments
@@ -67,3 +72,53 @@ if __name__ == '__main__':
     df_multiple_wsi.to_csv(path_save, index=False)
 
     eprint(f"Kmeans clustering score attached metadata saved: {path_save}!")
+
+    # Random Tile Plots
+    lst_wsi = df_multiple_wsi.wsi.tolist()
+    path_write_random_grid = "data/kmeans/visualizations_grid/"
+
+    eprint(f"Random Tile Plots...")
+
+    for id_img in lst_wsi:
+        for n_cluster in [3,5,8]:
+            tile_count = 10
+            size_img = 500
+            expand = int(tile_count / (size_img / 100) * n_cluster * 100)  # + (n_cluster - 1)*5
+
+            gb = df_multiple_wsi[df_multiple_wsi.id == id_img][['id', 'path', f'kmeans_labels_{n_cluster}']].reset_index(drop=True).groupby(
+                [f'kmeans_labels_{n_cluster}'])
+            ls = []
+
+            for _ in range(tile_count):
+                for index, frame in gb:
+                    ls.append(frame[frame['path'] == random.choice(frame['path'].unique())].sample(n=1))
+
+            df_img_print = pd.concat(ls)
+            df_img_print = df_img_print.sort_values(by=f'kmeans_labels_{n_cluster}', ascending=True).reset_index(drop=True)
+
+            new_im = Image.new('RGB', (size_img, expand))
+            m, k, load = 0, 0, 0
+
+            for i, row in df_img_print.iterrows():
+                im = Image.open(row.path)
+                im.thumbnail((100, 100))
+                # paste the image at location i,j:
+                if (i != 0) and (i % 5 == 0):
+                    k += 1
+                    m = 0
+                    if (i % 10 == 0):
+                        load = 5
+
+                y_axis = k * 100
+
+                if load > 0:
+                    y_axis += 5
+                    new_im.paste(im, (m * 100, y_axis))
+                    load -= 1
+                else:
+                    new_im.paste(im, (m * 100, y_axis))
+                m += 1
+            path_write_random_grid = os.path.join(path_write_random_grid, f"{id_img}")
+            new_im.save(os.path.join(mkdir_if_not_exist(path_write_random_grid), f"grid_tile_{id_img}_kmeans-{n_cluster}.jpg"))
+            eprint(f"Saved: {path_write_random_grid}, grid_tile_{id_img}_kmeans-{n_cluster}.jpg")
+
